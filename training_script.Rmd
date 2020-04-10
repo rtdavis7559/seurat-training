@@ -16,5 +16,6 @@ library(dplyr)
 ##Load Seurat Objects
 
 ```{r load.object}
-
+load("hci001.seurat3.object.Rda")
+training.object <- p01.cc.updated
 ```
