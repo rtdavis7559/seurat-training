@@ -19,3 +19,14 @@ library(dplyr)
 load("hci001.seurat3.object.Rda")
 training.object <- p01.cc.updated
 ```
+
+##Adding Information to Meta Data Columns
+
+```{r adding.meta.data}
+#  "@" accesses slots in the Seurat object
+# "$" accesses rows in a matrix
+training.object@meta.data$tissue[1:6]
+
+#Create fake list of cells that are doublets
+rownames(training.object@meta.data)[1:15]->doublets
+```
