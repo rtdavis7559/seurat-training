@@ -66,7 +66,7 @@ Sometimes, you will want to add new information about a cell that is not already
 1) You know the specific cell IDs (i.e. the rownames of our  @meta.data slot) that neeed to have new meta data added to them
 2) You want to add new meta data to a cell based on information already present in the @meta.data slot
 
-# Adding Meta Data from Known Cell IDs
+# Adding New Meta Data from Known Cell IDs
 
 Lets go over the first scenario now. We have been given new information about the cells in our dataset that allows us to know which cells are doublets and singlets. This information was provided to us as a list of cell names. Let's go ahead and load  that list and review it. For training purposes, this list is called doublet_ids.txt, but you will need to change it depending on your circumstances.
 
@@ -177,4 +177,103 @@ We could even visualize where those cells are located in our dimentionality redu
 
 ```{r visualize.doublets}
 DimPlot(training.object,group.by = "doublets")
+```
+
+# Adding New Meta Data from Information Already Present in the Meta Data
+
+In the previous scenario, we were adding new meta data to our Seurat object given known cell ids. In this scenario we will be using information already present in the @meta.data slot to generate new meta data. In this example we have analyzed the marker genes from our unbiased clustering and have identified the following information:
+
+-Cells from cluster A1 represent our microglia
+-Cells from cluster A2 represent our astrocytes
+-Cells from cluster A3 represent our neurons
+
+We have been tasked with updating our cell meta data to reflect this new information. To accomplish this, we will utilize tools we learned in the previous scenario in addition to some new tools.
+
+Just as before, the first task is to create an empty list where we can add in our new meta data:
+
+```{r cell.type.list}
+cell.types<-list()
+cell.types
+```
+
+Next we need to identify which column in our @meta.data slot contains the information about the unbiased clustering labels. We can see that this information is stored in the "paper.ident" column of our @meta.data slot.
+
+```{r paper.ident.slot}
+unique(training.object@meta.data$paper.ident)
+```
+
+Our next task is to identify which rows of our @meta.data correspond to "A1", "A2", and "A3" respectively. 
+
+To do this, we will use the grep() function. grep() is very similar to the which() function, in that it is used to find a specific string in a given variable. However, grep() allows you to find only part of a pattern, while which() searches for an exact pattern. The syntax for grep() is as follows:
+
+grep(pattern,variable)
+
+This will output which parts of the variable contain the selected pattern. For our purposes, we want to know which rows of training.object@meta.data$paper.ident contain the pattern "A1","A2", and "A3". Let's start with "A1"
+
+```{r pattern.match.a1}
+A1.rows<-grep("A1",training.object@meta.data$paper.ident)
+A1.rows
+```
+
+Notice the output of this code is a series of numbers. Just like in the which() function, these numbers correspond to which rows in our @meta.data$paper.ident are called "A1". Let's confirm one real quick:
+
+```{r confirm.pattern.a1}
+training.object@meta.data$paper.ident[3]
+```
+
+Now we need to repeat the same procedure for the "A2" and "A3" idents:
+
+```{r pattern.match.a2.a3}
+A2.rows<-grep("A2",training.object@meta.data$paper.ident)
+A3.rows<-grep("A3",training.object@meta.data$paper.ident)
+```
+
+Just like before, we will need to add these cell identities into our new meta data list that we created earlier (cell.types). However, we also need to remember the information that we had from before:
+
+-Cells from cluster A1 represent our microglia
+-Cells from cluster A2 represent our astrocytes
+-Cells from cluster A3 represent our neurons
+
+So when we name the new components of our list, we don't want to call them A1, A2, A3 again, but instead call them microglia, astrocytes, and neurons. Let's go ahead and try it with just the microglia (A1):
+
+```{r add.a1.to.metadata}
+cell.types[A1.rows] <- "microglia"
+head(cell.types)
+```
+
+Just like in the previous scenario, we are updating the components of our meta data list that we want to rename (cell.types[A1.rows]) and then we state what we want those components to be renamed (<- "microglia").
+
+Notice, however, that some of our components are listed as NULL. The reason why is that we did not give a consecutive list of components to be renamed, but rather only those that matched our A1 cell designation. As such, R automatically filled in the missing values with NULL. Whenever you specify new components of a list, the list will automatically fill in values that you do not specify, and will also expand the list to add in the new values you specify. As an example, let's look at how long our list is:
+
+```{r check.list.length}
+length(cell.types)
+```
+
+Right now, our list contains 241 components. Let's go ahead and add the A2 and A3 designations to our list, remembering to specify that A2 are astrocytes and A3 are neurons
+
+```{r add.a2.a3}
+cell.types[A2.rows] <- "astrocytes"
+cell.types[A3.rows] <- "neurons"
+length(cell.types)
+```
+
+You can see that our list automatically expanded to include the additional components that we added. Let's go ahead and confirm that we have added the correct information to our list:
+
+```{r confirm.list.labels}
+cell.types[1:10]
+```
+
+As you can see, we have now added information about all the cell types in the correct order. The final step is to add this new information to our meta data object. Remember, that our cell.types is a list, but Seurat only accepts a series of characters for meta data!
+
+```{r add.cell.types.metadata}
+cell.types<-as.character(cell.types)
+training.object[["cell.types"]]<-cell.types
+colnames(training.object@meta.data)
+unique(training.object@meta.data$cell.types)
+```
+
+We successfully added new information to our meta data from prior information! Let's go ahead and visualize our new information:
+
+```{r visualize.cell.types}
+DimPlot(training.object, group.by="cell.types")
 ```
