@@ -16,7 +16,7 @@ library(dplyr)
 ##Load Seurat Objects
 
 ```{r load.object}
-load("hci001.seurat3.object.Rda")
+load("training.object")
 training.object <- p01.cc.updated
 ```
 
@@ -58,11 +58,127 @@ In order to learn what types of information about your cells is stored in a spec
 unique(training.object@meta.data$tissue)
 ```
 
+"$" accesses specific columns in the @meta.data slot.
+
 Notice the output of this lists two variables "Lung" and "Tumor". This indicates that every cell in that column of the dataset has been assigned a value of either "Lung" or "Tumor", indicating that this column identifies the tissue of origin that these cells were isolated from. Try changing the "tissue" variable to "paper.ident" or "Phase" to learn what other information about the cells is stored.
 
-```{r adding.new.meta.data}
-#Create fake list of cells that are doublets
-rownames(training.object@meta.data)[1:15]->doublets
+Sometimes, you will want to add new information about a cell that is not already contained in the meta data of a seurat object. This is most often accomplished in one of two scenarios:
+
+1) You know the specific cell IDs (i.e. the rownames of our  @meta.data slot) that neeed to have new meta data added to them
+2) You want to add new meta data to a cell based on information already present in the @meta.data slot
+
+# Adding Meta Data from known cell IDs
+
+Lets go over the first scenario now. We have been given new information about the cells in our dataset that allows us to know which cells are doublets and singlets. This information was provided to us as a list of cell names. Let's go ahead and load  that list and review it. For training purposes, this list is called doublet_ids.txt, but you will need to change it depending on your circumstances.
+
+To load the list of cell IDs for the doublets execute the following code:
+
+```{r read.in.doublet.ids}
+doublets.ids<-read.table("doublet_ids.txt")
+doublets.ids
+```
+
+Notice the output of this code is a matrix with one column and 10 rows. Each row is the identity of a cell in our dataset that is known to be a doublet. In order to search our dataset for these cells, we will first need to convert this matrix into a string of characters. 
+
+To convert the matrix of doublet IDs  to a list of characters execute the following code:
+
+```{r convert.doublets.to.characters}
+doublets.ids<-as.character(doublets.ids$x)
+doublets.ids
+```
+
+We now have the list of cell IDs that are known to be doublets. We were given 10 cell IDs, but in order to add new meta data columns, you need to add information for every cell. Let's see how many cells exist in our dataset. To do this, we will use rownames() function.
+
+To determine how many cells exist in our dataset execute the following code:
+
+```{r how.many.cells}
+rownames(training.object@meta.data)
+```
+
+The output of this lists all the cells present in our dataset, which we can see is 247. However, for datasets of >10000 cells, this is not a very effective way to count the cells in our dataset. Instead, we can use the length() function to output the length of the rownames() function:
+
+```{r length.of.cell.in.dataset}
+length(rownames(training.object@meta.data))
+```
+
+Same information, but easier to interpret. Back to our original issue: we have been given 10 cell IDs that represent doublets, but no information on the other 237 cells. When we create our new meta.data, we will have to remember to add information for all the cells.
+
+Seurat accepts new information to be added to the metadata in the form of a series of characters, where each character corresponds to information about a cell. It is important that the order of these characters exactly matches the order of the cells in the meta data of our seurat object. In order to create this list, we will be using a combination of the list(), which(), and as.character() functions.
+
+The first step of this process is to create an empty list that we can fill in with our new meta data. To do that , execute the following code:
+
+```{r create.empty.meta.data.doublets}
+doublets.metadata<-list()
+doublets.metadata
+```
+
+The output of this command is an empty list. We will want to fill in this list with our new meta data. We will start by calling every cell as a "singlet", then rewrite those cells that we know to be doublets later. In order to set a component of a list we will use the following command:
+
+```{r add.singlet.to.list}
+doublets.metadata[1]<-"singlet"
+doublets.metadata
+```
+
+Notice, that this command only added one "singlet" character to our list. However, we will need to add information about all 247 cells. This can be done easily by specifying additional components of our list:
+
+```{r add.multiple.singlet}
+doublets.metadata[1:247]<-"singlet"
+head(doublets.metadata)
+```
+
+You can see that the "singlet" character has been added to all 247 components in our list. The head() command will only print the first few components of any variable you provide. You can confirm that all 247 components of the list are called "singlet" by removing the head() function if you prefer. 
+
+Now that we generated information about all 247 cells, we will need to specify which 10 cells are the doublets. In order to do this, we will need to find the rownames of our @meta.data slot which match the cell IDs from our doublet.ids variable. To do this we will use the which() function.
+
+The which() function is part of base R and allows you to pattern match two different variables. The syntax for this function is as follows:
+
+which(X %in% Y)
+
+The output which parts of X are located in Y. For our purposes we want the rownames(training.object@meta.data) (X) that are located in our doublets.ids (Y). To do this, we will execute the following code:
+
+```{r identify.doublet.rows}
+doublet.rows<-which(rownames(training.object@meta.data) %in% doublets.ids)
+doublet.rows
+```
+
+Notice the output of this code is a series of numbers. These numbers correspond to which rows in our @meta.data slot match the names of the cell IDs in our doublet.ids slot. For instance, the second row of the @meta.data slot should be the same as the second doublet.ids. We can confirm one of them quickly:
+
+```{r confirm.doublet.rows}
+rownames(training.object@meta.data)[2]
+doublets.ids[2]
+```
+
+You can see that those two cell IDs are identical. We have stashed this row information in the doublet.rows variable.
+
+Now that we have identified which rows in our meta.data matches our doublets, we can update our list we created earlier to reflect this. We will want to rename the components of our list that match the rows of the meta data column to instead say "doublet", rather than "singlet". To do that, we execute the following code:
+
+```{r update.doublet.list}
+doublet.metadata[doublet.rows]<-"doublets"
+doublet.metadata[c(1:3,12:15)]
+```
+
+We can see now that our new meta data list contains both doublet and singlet information about all of our cells. The final step is to convert our list into a series of characters and add that information to our Seurat object as new meta data. To do this we will use as.character():
+
+```{r doublet.character}
+doublet.metadata<-as.character(doublet.metadata)
+doublet.metadata[c(1:3,13:15)]
+```
+
+You can see that we now have a series of characters, rather than a list. Remember that Seurat only accepts a list of characters as meta data, not a list. Let us finally add this new meta data information to our Seurat object.
+
+```{r add.doublet.meta.data message=FALSE}
+training.object[["doublets"]]<-doublet.metadata
+colnames(training.object@meta.data)
+unique(training.object@meta.data$doublets)
+```
+
+When you add meta data to a Seurat object you will need to specify a name for the new information in the object[["NAME"]]. You can see that we have successfully added our new meta data to the column, and that the information is telling us which cells are singlets or doublets.
+
+We could even visualize where those cells are located in our dimentionality reduction:
+
+```{r visualize.doublets}
+DimPlot(training.object,group.by = "doublets")
+```
 
 # which() command searches for exact strings
 # grep() searches for partial strings
