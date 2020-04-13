@@ -20,13 +20,47 @@ load("hci001.seurat3.object.Rda")
 training.object <- p01.cc.updated
 ```
 
-##Adding Information to Meta Data Columns
+# Seurat Object Meta Data
 
-```{r adding.meta.data}
-#  "@" accesses slots in the Seurat object
-# "$" accesses rows in a matrix
-training.object@meta.data$tissue[1:6]
+In this part of the tutorial, we are reviewing how to access information in the object@meta.data slot of a Seurat object and create new meta.data columns for cells. Meta data (or cell-specific characteristics) are stored in the Seurat object under the object@meta.data slot. These cell-specific characteristics can include information like patient ID, number of genes expressed by the cell, or sequencing technology. The default information that is stored in the object@meta.data slot when the Seurat Object is first created is:
 
+nCount_RNA: number of transcripts expressed by the cell (related to sequencing reads per cell)
+nFeature_RNA: number of genes expressed >0 by the cell (remember that when you create a Seurat object, you specify to only include genes that are exprssed >0 in X cells)
+orig.ident: this column is automatically filled in by whatever variable is present in the project="X" part of CreateSeuratObject(project = "X")
+
+All other meta.data about the cell that is known a priori will need to be added manually. We will go over how to do that in the following sections.
+
+First, let's take a look at what the object@meta.object actually looks like. For training purposes, our Seurat object is called training.object, but you will need to change that to whatever is the name of the Seurat object you are analyzing.
+
+Execute the following code:
+
+```{r exploring.meta.data}
+training.object@meta.data[1:5,1:5]
+```
+
+The output of this shows us the first 5 rows and first 5 columns of our meta data. "@" accesses slots in the Seurat object. To get information about cells, you want to access the @meta.data slot. Notice that the @meta.data slot is arranged such that all of the rows represent the cell ID and the columns represent different information about the cells.
+
+Your Seurat object can store unlimited types of cell-specific information. When you are first given a Seurat object that has already been created, the first step is to learn what type of information has already been stored in your Seurat object.
+
+In order to learn what types of information about your cells is stored in your Seurat Object you execute the following code: 
+
+```{r accessing.meta.data}
+colnames(training.object@meta.data)
+```
+
+Notice the output of this command lists several variables, all containing different information about the cells in our dataset. Let's explore some of them now.
+
+If you are unsure what information is stored in each meta.data column, it is helpful to identify what are the variables contained in that column. For training purposes, let's find out what is stored in the "tissue" column of our meta data.
+
+In order to learn what types of information about your cells is stored in a specific column of your meta data you execute the following code: 
+
+```{r unique.meta.data.column}
+unique(training.object@meta.data$tissue)
+```
+
+Notice the output of this lists two variables "Lung" and "Tumor". This indicates that every cell in that column of the dataset has been assigned a value of either "Lung" or "Tumor", indicating that this column identifies the tissue of origin that these cells were isolated from. Try changing the "tissue" variable to "paper.ident" or "Phase" to learn what other information about the cells is stored.
+
+```{r adding.new.meta.data}
 #Create fake list of cells that are doublets
 rownames(training.object@meta.data)[1:15]->doublets
 
