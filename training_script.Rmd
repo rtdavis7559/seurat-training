@@ -183,9 +183,9 @@ DimPlot(training.object,group.by = "doublets")
 
 In the previous scenario, we were adding new meta data to our Seurat object given known cell ids. In this scenario we will be using information already present in the @meta.data slot to generate new meta data. In this example we have analyzed the marker genes from our unbiased clustering and have identified the following information:
 
--Cells from cluster A1 represent our microglia
--Cells from cluster A2 represent our astrocytes
--Cells from cluster A3 represent our neurons
+1) Cells from cluster A1 represent our microglia
+2) Cells from cluster A2 represent our astrocytes
+3) Cells from cluster A3 represent our neurons
 
 We have been tasked with updating our cell meta data to reflect this new information. To accomplish this, we will utilize tools we learned in the previous scenario in addition to some new tools.
 
@@ -230,9 +230,9 @@ A3.rows<-grep("A3",training.object@meta.data$paper.ident)
 
 Just like before, we will need to add these cell identities into our new meta data list that we created earlier (cell.types). However, we also need to remember the information that we had from before:
 
--Cells from cluster A1 represent our microglia
--Cells from cluster A2 represent our astrocytes
--Cells from cluster A3 represent our neurons
+1) Cells from cluster A1 represent our microglia
+2) Cells from cluster A2 represent our astrocytes
+3) Cells from cluster A3 represent our neurons
 
 So when we name the new components of our list, we don't want to call them A1, A2, A3 again, but instead call them microglia, astrocytes, and neurons. Let's go ahead and try it with just the microglia (A1):
 
