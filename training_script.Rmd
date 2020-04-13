@@ -16,8 +16,7 @@ library(dplyr)
 ##Load Seurat Objects
 
 ```{r load.object}
-load("training.object")
-training.object <- p01.cc.updated
+load("training.object.Rda")
 ```
 
 # Seurat Object Meta Data
@@ -67,7 +66,7 @@ Sometimes, you will want to add new information about a cell that is not already
 1) You know the specific cell IDs (i.e. the rownames of our  @meta.data slot) that neeed to have new meta data added to them
 2) You want to add new meta data to a cell based on information already present in the @meta.data slot
 
-# Adding Meta Data from known cell IDs
+# Adding Meta Data from Known Cell IDs
 
 Lets go over the first scenario now. We have been given new information about the cells in our dataset that allows us to know which cells are doublets and singlets. This information was provided to us as a list of cell names. Let's go ahead and load  that list and review it. For training purposes, this list is called doublet_ids.txt, but you will need to change it depending on your circumstances.
 
@@ -134,7 +133,7 @@ The which() function is part of base R and allows you to pattern match two diffe
 
 which(X %in% Y)
 
-The output which parts of X are located in Y. For our purposes we want the rownames(training.object@meta.data) (X) that are located in our doublets.ids (Y). To do this, we will execute the following code:
+The output specifies which parts of X are located in Y. For our purposes we want the rownames(training.object@meta.data) (X) that are located in our doublets.ids (Y). To do this, we will execute the following code:
 
 ```{r identify.doublet.rows}
 doublet.rows<-which(rownames(training.object@meta.data) %in% doublets.ids)
@@ -153,21 +152,21 @@ You can see that those two cell IDs are identical. We have stashed this row info
 Now that we have identified which rows in our meta.data matches our doublets, we can update our list we created earlier to reflect this. We will want to rename the components of our list that match the rows of the meta data column to instead say "doublet", rather than "singlet". To do that, we execute the following code:
 
 ```{r update.doublet.list}
-doublet.metadata[doublet.rows]<-"doublets"
-doublet.metadata[c(1:3,12:15)]
+doublets.metadata[doublet.rows]<-"doublets"
+doublets.metadata[c(1:3,12:15)]
 ```
 
 We can see now that our new meta data list contains both doublet and singlet information about all of our cells. The final step is to convert our list into a series of characters and add that information to our Seurat object as new meta data. To do this we will use as.character():
 
 ```{r doublet.character}
-doublet.metadata<-as.character(doublet.metadata)
-doublet.metadata[c(1:3,13:15)]
+doublets.metadata<-as.character(doublets.metadata)
+doublets.metadata[c(1:3,13:15)]
 ```
 
 You can see that we now have a series of characters, rather than a list. Remember that Seurat only accepts a list of characters as meta data, not a list. Let us finally add this new meta data information to our Seurat object.
 
-```{r add.doublet.meta.data message=FALSE}
-training.object[["doublets"]]<-doublet.metadata
+```{r add.doublet.meta.data}
+training.object[["doublets"]]<-doublets.metadata
 colnames(training.object@meta.data)
 unique(training.object@meta.data$doublets)
 ```
