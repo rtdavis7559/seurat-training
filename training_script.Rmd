@@ -419,4 +419,13 @@ plot2
 ```{r }
 all.genes <- rownames(pbmc)
 pbmc <- ScaleData(pbmc, features = all.genes)
+
+dim(as.matrix(pbmc@assays$RNA@scale.data))
+```
+
+```{r }
+pbmc <- RunPCA(pbmc, features = VariableFeatures(object = pbmc))
+#Stores coordinates of cells in PCA space
+head(pbmc@reductions$)
+pbmc <- RunUMAP(pbmc, dims = 1:10)
 ```
