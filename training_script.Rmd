@@ -391,4 +391,12 @@ pbmc <- subset(pbmc, subset = nFeature_RNA > 200 & nFeature_RNA < 2500 & percent
 pbmc <- NormalizeData(pbmc, normalization.method = "LogNormalize", scale.factor = 10000)
 
 pbmc <- NormalizeData(pbmc)
+
+#This slot stores the raw counts matrix
+colSums(as.matrix(pbmc@assays$RNA@counts))[1]
+#This slot stores the normalized counts matrix
+colSums(as.matrix(pbmc@assays$RNA@data))[1]
+#This slot stores...
+colSums(as.matrix(pbmc@assays$RNA@scale.data))[1]
 ```
+
