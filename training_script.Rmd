@@ -427,10 +427,13 @@ dim(as.matrix(pbmc@assays$RNA@scale.data))
 pbmc <- RunPCA(pbmc, features = VariableFeatures(object = pbmc))
 #Stores coordinates of cells in PCA space
 pbmc <- RunUMAP(pbmc, dims = 1:10)
-DimPlot(pbmc,reduction = "umap")
+DimPlot(pbmc,reduction = "umap",group.by = "RNA_snn_res.0.5")
+?DimPlot
 ```
 
 ```{r }
 pbmc <- FindNeighbors(pbmc, dims = 1:10)
-pbmc <- FindClusters(pbmc, resolution = 0.5)
+pbmc <- FindClusters(pbmc, resolution = 0.8)
+
+unique(pbmc@meta.data$seurat_clusters)
 ```
