@@ -400,3 +400,18 @@ colSums(as.matrix(pbmc@assays$RNA@data))[1]
 colSums(as.matrix(pbmc@assays$RNA@scale.data))[1]
 ```
 
+```{r }
+dim(as.matrix(pbmc@assays$RNA@counts))
+pbmc <- FindVariableFeatures(pbmc, selection.method = "vst", nfeatures = 2000)
+
+#Lists out the highly variable genes that were identified
+VariableFeatures(pbmc)
+# Identify the 10 most highly variable genes
+top30 <- head(VariableFeatures(pbmc), 30)
+top30
+# plot variable features with and without labels
+plot1 <- VariableFeaturePlot(pbmc)
+plot2 <- LabelPoints(plot = plot1, points = top30, repel = TRUE)
+plot1
+plot2
+```
