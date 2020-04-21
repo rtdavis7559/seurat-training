@@ -11,7 +11,7 @@ output: html_document
 library(Seurat)
 library(ggplot2)
 library(dplyr)
-#Test Change
+library(patchwork)
 ```
 
 ##Load Seurat Objects
@@ -356,3 +356,7 @@ Now we can go ahead and input this gene set into the Seurat AddModuleScore funct
 ```{r add.module.score}
 training.object <- AddModuleScore(training.object, features = gene.set, assay = "RNA")
 ```
+
+##Running Seurat Tutorial - Clustering and Marker Gene Identification
+
+```{}
