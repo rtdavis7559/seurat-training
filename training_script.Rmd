@@ -415,3 +415,8 @@ plot2 <- LabelPoints(plot = plot1, points = top30, repel = TRUE)
 plot1
 plot2
 ```
+
+```{r }
+all.genes <- rownames(pbmc)
+pbmc <- ScaleData(pbmc, features = all.genes)
+```
