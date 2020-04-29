@@ -445,10 +445,17 @@ DimPlot(pbmc)
 
 ```{r find.all.markers}
 # find all markers of cluster 1
-cluster1.markers <- FindMarkers(pbmc, ident.1 = 1, min.pct = 0.25)
+cluster1.markers <- FindMarkers(pbmc, ident.1 = 1, ident.2 = 3, min.pct = 0.25)
 head(cluster1.markers, n = 5)
+?FindMarkers
 
 # find markers for every cluster compared to all remaining cells, report only the positive ones
 pbmc.markers <- FindAllMarkers(pbmc, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
-pbmc.markers %>% group_by(cluster) %>% top_n(n = 2, wt = avg_logFC)
+pbmc.top2.markers <- pbmc.markers %>% group_by(cluster) %>% top_n(n = 2, wt = avg_logFC)
+pbmc.top2.markers
+
+top10 <- pbmc.markers %>% group_by(cluster) %>% top_n(n = 10, wt = avg_logFC)
+DoHeatmap(pbmc, features = top10$gene) + NoLegend()
 ```
+
+
