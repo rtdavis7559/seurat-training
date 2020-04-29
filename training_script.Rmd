@@ -381,8 +381,8 @@ head(pbmc@meta.data)
 ```
 
 ```{r }
-plot1 <- FeatureScatter(pbmc, feature1 = "ModuleScore1", feature2 = "nFeature_RNA")
-plot1
+#plot1 <- FeatureScatter(pbmc, feature1 = "ModuleScore1", feature2 = "nFeature_RNA")
+#plot1
 
 pbmc <- subset(pbmc, subset = nFeature_RNA > 200 & nFeature_RNA < 2500 & percent.mt < 5)
 ```
@@ -427,13 +427,28 @@ dim(as.matrix(pbmc@assays$RNA@scale.data))
 pbmc <- RunPCA(pbmc, features = VariableFeatures(object = pbmc))
 #Stores coordinates of cells in PCA space
 pbmc <- RunUMAP(pbmc, dims = 1:10)
-DimPlot(pbmc,reduction = "umap",group.by = "RNA_snn_res.0.5")
-?DimPlot
+#DimPlot(pbmc,reduction = "umap",group.by = "RNA_snn_res.0.5")
+#?DimPlot
 ```
 
 ```{r }
 pbmc <- FindNeighbors(pbmc, dims = 1:10)
 pbmc <- FindClusters(pbmc, resolution = 0.8)
 
-unique(pbmc@meta.data$seurat_clusters)
+head(pbmc@meta.data)
+DimPlot(pbmc)
+pbmc@active.ident
+Idents(pbmc)<-"RNA_snn_res.0.8"
+DimPlot(pbmc)
+
+```
+
+```{r find.all.markers}
+# find all markers of cluster 1
+cluster1.markers <- FindMarkers(pbmc, ident.1 = 1, min.pct = 0.25)
+head(cluster1.markers, n = 5)
+
+# find markers for every cluster compared to all remaining cells, report only the positive ones
+pbmc.markers <- FindAllMarkers(pbmc, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
+pbmc.markers %>% group_by(cluster) %>% top_n(n = 2, wt = avg_logFC)
 ```
