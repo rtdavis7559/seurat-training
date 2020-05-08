@@ -473,6 +473,75 @@ levels(pbmc)
 split.list<-SplitObject(pbmc, split.by = "modified_clusters")
 pbmc.cluster1<-split.list$`1`
 pbmc.cluster1
-DimPlot(pbmc.cluster1)
+DimPlot(pbmc.cluster1)+DarkTheme()
 ```
 
+##Visualizing Seurat Object Data
+
+```{r }
+DefaultAssay(pbmc)<-"RNA"
+genes <- c("LYZ", "CCL5", "IL32", "PTPRCAP", "FCGR3A", "PF4")
+
+RidgePlot(pbmc, features = "GAPDH", assay = "RNA", group.by = "RNA_snn_res.0.8")
+VlnPlot(pbmc, features = "GAPDH", assay = "RNA", group.by = "RNA_snn_res.0.8", pt.size = 0)
+plot1<-DimPlot(pbmc,#Seurat Object 
+               pt.size = 2,#Change the size of the points
+               label = TRUE,
+               label.size = 10)+NoLegend()#Overlay center of cluster on plot
+plot2<-FeaturePlot(pbmc, 
+                   features = "GAPDH", 
+                   pt.size = 2,
+                   cols = PurpleAndYellow(k=20))+DarkTheme()+NoAxes()
+FeaturePlot(pbmc, features = "GAPDH", pt.size = 2)+facet_wrap(~pbmc$modified_clusters)
+DotPlot(pbmc, features = genes)+ RotatedAxis()
+plot1+plot2
+
+pbmc
+table(Idents(pbmc))
+Idents(pbmc)<-"orig.ident"
+pbmc.subset<-subset(pbmc, downsample = 100)
+table(Idents(pbmc.subset))
+DoHeatmap(subset(pbmc, downsample = 100), features = genes, size = 3)
+DoHeatmap(pbmc, features = genes, size = 3)
+
+pdf(file = "test2.pdf", width = 12, height = 8)
+FeaturePlot(pbmc, features = genes, ncol = 3)+NoAxes()+NoLegend()
+FeatureScatter(pbmc, feature1 = "nCount_RNA", feature2 = "nFeature_RNA", group.by = "RNA_snn_res.0.8")+facet_wrap(~pbmc$RNA_snn_res.0.8)
+
+FeaturePlot(pbmc, features = "MS4A1")
+HoverLocator(plot = plot, information = FetchData(pbmc, vars = c("ident", "PC_1", "nFeature_RNA")))
+
+plot<-DimPlot(pbmc, reduction = "umap")
+CellSelector(plot = plot)
+
+#Volcano Plots
+head(cluster1.markers)
+library(dplyr)
+#Create new column for the which genes are upregulated in which clusters
+cluster1.markers.idents<-mutate(cluster1.markers, 
+                                "idents" = cluster1.markers$avg_logFC>0)#create a new column called "idents". For every row where the avg_logFC > 0, print "TRUE", otherwise print "FALSE"
+#Replace the TRUE values withe "cluster_1" and the False values with "Cluster_3"
+cluster1.markers.idents$idents<-gsub("TRUE",#The value I want to find
+                                     "cluster_1",#The replacement value
+                                     cluster1.markers.idents$idents)#Where to look
+cluster1.markers.idents$idents<-gsub("FALSE",
+                                     "cluster_3",
+                                     cluster1.markers.idents$idents)
+rownames(cluster1.markers.idents)<-rownames(cluster1.markers)
+cluster1.markers.idents<-mutate(cluster1.markers.idents, 
+                                "genes" = rownames(cluster1.markers.idents))
+
+cluster1.markers.idents[1:20,]
+cluster1.markers[1:20,]
+
+library(ggplot2)
+library(ggrepel)
+
+ggplot(cluster1.markers.idents[cluster1.markers.idents$p_val_adj>0.25,],
+       aes(x = avg_logFC,
+           y = p_val_adj,
+           color = idents,
+           label = genes))+
+  geom_point()+
+  geom_label_repel(aes(label=ifelse(genes=="CD69",as.character(genes),'')))
+```
