@@ -543,5 +543,8 @@ ggplot(cluster1.markers.idents[cluster1.markers.idents$p_val_adj>0.25,],
            color = idents,
            label = genes))+
   geom_point()+
-  geom_label_repel(aes(label=ifelse(genes=="CD69",as.character(genes),'')))
+  geom_label_repel(aes(label=ifelse(avg_logFC<0.25 & avg_logFC>-0.5,'',as.character(genes))),
+                  box.padding   = 0.75, 
+                  point.padding = 0.1)+
+  theme_classic()
 ```
