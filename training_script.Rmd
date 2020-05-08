@@ -457,5 +457,22 @@ pbmc.top2.markers
 top10 <- pbmc.markers %>% group_by(cluster) %>% top_n(n = 10, wt = avg_logFC)
 DoHeatmap(pbmc, features = top10$gene) + NoLegend()
 ```
+```{r }
+new.cluster.ids <- c("1", "1", "2", "3", "4", "4", "5", "6", "7","8","9")
+names(new.cluster.ids) <- levels(pbmc)
+pbmc <- RenameIdents(pbmc, new.cluster.ids)
+DimPlot(pbmc, reduction = "umap", label = TRUE, pt.size = 0.5) + NoLegend()
 
+pbmc<-StashIdent(pbmc, save.name = "modified_clusters")
+
+levels(pbmc$RNA_snn_res.0.8)
+colnames(pbmc@meta.data)
+
+levels(pbmc)
+
+split.list<-SplitObject(pbmc, split.by = "modified_clusters")
+pbmc.cluster1<-split.list$`1`
+pbmc.cluster1
+DimPlot(pbmc.cluster1)
+```
 
